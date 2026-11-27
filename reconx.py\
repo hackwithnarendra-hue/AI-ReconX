@@ -1,0 +1,112 @@
+import re
+import sys
+
+from rich.console import Console
+from rich.panel import Panel
+from rich.text import Text
+
+from modules.domain_info import (
+    get_domain_info,
+    display_domain_info
+)
+from modules.whois_lookup import display_whois_info
+console = Console()
+
+
+def show_banner():
+
+    banner = Text()
+    banner.append("AI ", style="bold cyan")
+    banner.append("ReconX", style="bold white")
+
+    banner.append(
+        "\nAll-in-One OSINT Reconnaissance Framework",
+        style="bright_blue"
+    )
+
+    console.print(
+        Panel(
+            banner,
+            border_style="cyan",
+            padding=(1, 3)
+        )
+    )
+
+
+def validate_domain(domain):
+
+    domain = domain.strip().lower()
+
+    if domain.startswith(("http://", "https://")):
+        return False
+
+    if "/" in domain or " " in domain:
+        return False
+
+    pattern = (
+        r"^(?=.{1,253}$)"
+        r"(?:[a-z0-9](?:[a-z0-9-]{0,61}[a-z0-9])?\.)+"
+        r"[a-z]{2,63}$"
+    )
+
+    return bool(re.fullmatch(pattern, domain))
+
+
+def main():
+
+    show_banner()
+
+    console.print(
+        "[bold green][+] AI ReconX Started[/bold green]"
+    )
+
+    console.print(
+        "[yellow]Only scan domains you own or are authorized to assess.[/yellow]\n"
+    )
+
+    domain = console.input(
+        "[bold cyan]Enter Target Domain: [/bold cyan]"
+    )
+
+    domain = domain.strip().lower()
+
+    if not validate_domain(domain):
+
+        console.print(
+            "[bold red]Invalid domain format![/bold red]"
+        )
+
+        sys.exit(1)
+
+    console.print(
+        f"\n[green][+] Target accepted: {domain}[/green]"
+    )
+
+    console.print(
+        "[cyan][+] Domain validation successful.[/cyan]"
+    )
+
+    console.print(
+        "\n[bold yellow][*] Starting Domain Information Module...[/bold yellow]"
+    )
+
+    domain_results = get_domain_info(domain)
+
+    display_domain_info(domain_results)
+
+    console.print(
+        "[bold green][+] Domain Information Module Completed.[/bold green]"
+    )
+    
+    console.print(
+        "\n[bold yellow][*] Starting WHOIS / RDAP Module...[/bold yellow]"
+    )
+
+    display_whois_info(domain)
+
+    console.print(
+        "[bold green][+] WHOIS / RDAP Module Completed.[/bold green]"
+    )
+
+if __name__ == "__main__":
+    main()
